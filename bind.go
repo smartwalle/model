@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	k_MODEL_TAG        = "model"
-	k_MODEL_NO_TAG     = "-"
-	k_MODEL_CLEAN_DATA = "CleanData"
+	k_MODEL_TAG         = "model"
+	k_MODEL_CONSTRUCTOR = "Constructor"
+	k_MODEL_NO_TAG      = "-"
+	k_MODEL_CLEAN_DATA  = "CleanData"
 )
 
 func Bind(source map[string]interface{}, result interface{}) (err error) {
@@ -82,10 +83,28 @@ func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, s
 			continue
 		}
 
-		fieldValue.Set(reflect.ValueOf(value))
+		//fieldValue.Set(reflect.ValueOf(value))
+		setValue(objValue, fieldValue, fieldStruct, value)
 
 		if cleanDataValue.IsValid() {
 			cleanDataValue.SetMapIndex(reflect.ValueOf(tag), fieldValue)
 		}
+	}
+}
+
+func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructField, value interface{}) {
+	var mName = fieldStruct.Name + k_MODEL_CONSTRUCTOR
+	var mValue = objValue.MethodByName(mName)
+	if mValue.IsValid() == false {
+		if objValue.CanAddr() {
+			mValue = objValue.Addr().MethodByName(mName)
+		}
+	}
+
+	if mValue.IsValid() {
+		var rList = mValue.Call([]reflect.Value{reflect.ValueOf(value)})
+		fieldValue.Set(rList[0])
+	} else {
+		fieldValue.Set(reflect.ValueOf(value))
 	}
 }

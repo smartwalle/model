@@ -5,12 +5,17 @@ import (
 	"fmt"
 )
 
+type MyString string
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 type Human struct {
 	Model
-	Name string `model:"name"`
+	Name MyString `model:"name"`
 	Age  int    `model:"age"`
+}
+
+func (this *Human)NameConstructor(n string) MyString {
+	return MyString(n)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +37,5 @@ func TestBindPoint(t *testing.T) {
 	Bind(source, &s)
 	if s != nil {
 		fmt.Println(s.Name, s.Age, s.Number)
-		fmt.Println(s.CleanData)
 	}
 }
