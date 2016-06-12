@@ -43,11 +43,10 @@ func Bind(source map[string]interface{}, result interface{}) (err error) {
 	if cleanDataValue.IsValid() && cleanDataValue.IsNil() {
 		cleanDataValue.Set(reflect.MakeMap(cleanDataValue.Type()))
 	}
-	bindWithMap(objType, objValue, cleanDataValue, source)
-	return nil
+	return bindWithMap(objType, objValue, cleanDataValue, source)
 }
 
-func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, source map[string]interface{}) {
+func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, source map[string]interface{}) (error) {
 	var numField = objType.NumField()
 	for i := 0; i < numField; i++ {
 		var fieldStruct = objType.Field(i)
@@ -70,7 +69,9 @@ func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, s
 			}
 
 			if fieldValue.Kind() == reflect.Struct {
-				bindWithMap(fieldValue.Addr().Type().Elem(), fieldValue, cleanDataValue, source)
+				if err := bindWithMap(fieldValue.Addr().Type().Elem(), fieldValue, cleanDataValue, source); err != nil {
+					return err
+				}
 				continue
 			}
 
@@ -84,15 +85,18 @@ func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, s
 		}
 
 		//fieldValue.Set(reflect.ValueOf(value))
-		setValue(objValue, fieldValue, fieldStruct, value)
+		if err := setValue(objValue, fieldValue, fieldStruct, value); err != nil {
+			return err
+		}
 
 		if cleanDataValue.IsValid() {
 			cleanDataValue.SetMapIndex(reflect.ValueOf(tag), fieldValue)
 		}
 	}
+	return nil
 }
 
-func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructField, value interface{}) {
+func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructField, value interface{}) (error) {
 	var mName = fieldStruct.Name + k_MODEL_CONSTRUCTOR
 	var mValue = objValue.MethodByName(mName)
 	if mValue.IsValid() == false {
@@ -103,8 +107,15 @@ func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructFiel
 
 	if mValue.IsValid() {
 		var rList = mValue.Call([]reflect.Value{reflect.ValueOf(value)})
+		if len(rList) > 1 {
+			var rValue1 = rList[1]
+			if rValue1.IsNil() == false {
+				return rValue1.Interface().(error)
+			}
+		}
 		fieldValue.Set(rList[0])
 	} else {
 		fieldValue.Set(reflect.ValueOf(value))
 	}
+	return nil
 }
