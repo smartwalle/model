@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	k_MODEL_TAG         = "model"
-	k_MODEL_CONSTRUCTOR = "Constructor"
-	k_MODEL_NO_TAG      = "-"
-	k_MODEL_CLEAN_DATA  = "CleanData"
+	k_MODEL_TAG                 = "model"
+	k_MODEL_FUNC_CLEANED_PREFIX = "Cleaned"
+	k_MODEL_NO_TAG              = "-"
+	k_MODEL_CLEANED_DATA        = "CleanedData"
 )
 
 func Bind(source map[string]interface{}, result interface{}) (err error) {
@@ -39,14 +39,14 @@ func Bind(source map[string]interface{}, result interface{}) (err error) {
 		break
 	}
 
-	var cleanDataValue = objValue.FieldByName(k_MODEL_CLEAN_DATA)
+	var cleanDataValue = objValue.FieldByName(k_MODEL_CLEANED_DATA)
 	if cleanDataValue.IsValid() && cleanDataValue.IsNil() {
 		cleanDataValue.Set(reflect.MakeMap(cleanDataValue.Type()))
 	}
 	return bindWithMap(objType, objValue, cleanDataValue, source)
 }
 
-func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, source map[string]interface{}) (error) {
+func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, source map[string]interface{}) error {
 	var numField = objType.NumField()
 	for i := 0; i < numField; i++ {
 		var fieldStruct = objType.Field(i)
@@ -96,8 +96,8 @@ func bindWithMap(objType reflect.Type, objValue, cleanDataValue reflect.Value, s
 	return nil
 }
 
-func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructField, value interface{}) (error) {
-	var mName = fieldStruct.Name + k_MODEL_CONSTRUCTOR
+func setValue(objValue, fieldValue reflect.Value, fieldStruct reflect.StructField, value interface{}) error {
+	var mName = k_MODEL_FUNC_CLEANED_PREFIX + fieldStruct.Name
 	var mValue = objValue.MethodByName(mName)
 	if mValue.IsValid() == false {
 		if objValue.CanAddr() {

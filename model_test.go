@@ -15,7 +15,7 @@ type Human struct {
 	Age  int      `model:"age"`
 }
 
-func (this *Human) NameConstructor(n string) (MyString, error) {
+func (this *Human) CleanedName(n string) (MyString, error) {
 	if len(n) > 0 {
 		return MyString(n), nil
 	}
