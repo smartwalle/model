@@ -8,8 +8,12 @@ const (
 	k_MODEL_TAG = "model"
 )
 
-func Bind(source map[string]interface{}, result interface{}) (err error) {
+func Bind(source map[string]interface{}, result interface{}) (error) {
 	return binding.BindWithTag(source, result, k_MODEL_TAG)
+}
+
+func BindWithAdvanced(source map[string]interface{}, result interface{}, tag, cleanedTag string) (error) {
+	return binding.BindWithAdvanced(source, result, tag, cleanedTag)
 }
 
 //func Bind(source map[string]interface{}, result interface{}) (err error) {
